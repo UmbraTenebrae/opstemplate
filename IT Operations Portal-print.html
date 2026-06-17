@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IT Operations Portal — Print</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="portal.css" />
+
+  <style>
+    /* one artboard per physical page; size the page to the artboard */
+    @page { size: 1440px 1168px; margin: 0; }
+    html, body { margin: 0; padding: 0; background: #ffffff; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+    .print-page {
+      width: 1440px; height: 1168px;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; break-after: page; page-break-after: always;
+    }
+    .print-page:last-child { break-after: auto; page-break-after: auto; }
+    .print-page.is-light { background: #eef1f5; }
+    .print-page.is-dark  { background: #17110d; }
+
+    .print-stack { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+    .print-artboard {
+      width: 1440px; overflow: hidden; position: relative;
+      box-shadow: 0 1px 3px rgba(0,0,0,.14), 0 18px 50px rgba(0,0,0,.16);
+    }
+
+    /* per-page chocolate dark theming (mirrors portal.css dark tokens,
+       scoped to a wrapper so light + dark pages coexist in one document) */
+    [data-theme="dark"] .portal {
+      --bg: #17110d;
+      --surface: #221913;
+      --surface-2: #2b201a;
+      --surface-3: #352820;
+      --border: #3b2d23;
+      --border-strong: #503e30;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+      --shadow-md: 0 1px 3px rgba(0, 0, 0, 0.55), 0 10px 28px rgba(0, 0, 0, 0.4);
+      --text: #ece0cf;
+      --text-2: #d4c4ac;
+      --text-muted: #ab9881;
+      --text-faint: #82705c;
+      --primary: #9aa2ff;
+      --primary-hover: #b6bcff;
+      --primary-ink: #1a1209;
+      --primary-soft: rgba(154, 162, 255, 0.16);
+      --primary-line: rgba(154, 162, 255, 0.40);
+      --accent: #4dd6e8;
+      --accent-soft: rgba(77, 214, 232, 0.15);
+      --st-ok: #34d6a8;
+      --st-warn: #f4ad3c;
+      --st-info: #b3bbff;
+      --st-down: #ff86b3;
+      --st-ok-soft: rgba(52, 214, 168, 0.16);
+      --st-warn-soft: rgba(244, 173, 60, 0.17);
+      --st-info-soft: rgba(179, 187, 255, 0.16);
+      --st-down-soft: rgba(255, 134, 179, 0.16);
+    }
+
+    /* page caption strip */
+    .print-cap {
+      font-family: "IBM Plex Mono", monospace; font-size: 14px; letter-spacing: 0.04em;
+      color: rgba(0,0,0,0.45); padding-left: 2px;
+    }
+    .is-dark .print-cap { color: rgba(236,224,207,0.55); }
+
+    @media print {
+      *, *::before, *::after {
+        animation-delay: -99s !important; animation-duration: .001s !important;
+        animation-iteration-count: 1 !important; animation-fill-mode: both !important;
+        animation-play-state: running !important; transition-duration: 0s !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="icons.jsx"></script>
+  <script type="text/babel" src="shell.jsx"></script>
+  <script type="text/babel" src="data.jsx"></script>
+  <script type="text/babel" src="parts.jsx"></script>
+  <script type="text/babel" src="directionA.jsx"></script>
+  <script type="text/babel" src="directionB.jsx"></script>
+  <script type="text/babel" src="directionC.jsx"></script>
+  <script type="text/babel" src="foundations.jsx"></script>
+
+  <script type="text/babel">
+    function Page({ caption, theme, h, children }) {
+      return (
+        <div className={`print-page is-${theme}`} data-theme={theme}>
+          <div className="print-stack">
+            <div className="print-cap">{caption}</div>
+            <div className="print-artboard" style={{ height: h }}>
+              {children}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function PrintDoc() {
+      return (
+        <React.Fragment>
+          <Page caption="A · Directory — categorized grid · light" theme="light" h={1024}><DirConsole /></Page>
+          <Page caption="B · Launcher — search-first · light" theme="light" h={1024}><DirLauncher /></Page>
+          <Page caption="C · Workspace — catalog + rail · light" theme="light" h={1024}><DirDashboard /></Page>
+          <Page caption="Foundations — design system · light" theme="light" h={1080}><Foundations /></Page>
+          <Page caption="A · Directory — chocolate dark" theme="dark" h={1024}><DirConsole /></Page>
+          <Page caption="B · Launcher — chocolate dark" theme="dark" h={1024}><DirLauncher /></Page>
+          <Page caption="C · Workspace — chocolate dark" theme="dark" h={1024}><DirDashboard /></Page>
+        </React.Fragment>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<PrintDoc />);
+
+    // print once fonts + layout have settled
+    window.addEventListener('load', function () {
+      var ready = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+      ready.then(function () { setTimeout(function () { window.print(); }, 600); });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IT Operations Portal</title>
+
+  <template id="__bundler_thumbnail">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" rx="18" fill="#4338ca"/>
+      <g fill="none" stroke="#ffffff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M50 28l20 11-20 11-20-11z"/>
+        <path d="M30 50l20 11 20-11"/>
+      </g>
+    </svg>
+  </template>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="portal.css" />
+
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; }
+    body { background: var(--bg, #eef1f5); }
+    #root, #root > .portal { height: 100%; }
+    /* real served page: let content scroll on short viewports */
+    #root .ip-content { overflow: auto; }
+
+    /* top-bar theme toggle */
+    .ip-theme-toggle {
+      width: 38px; height: 38px; flex: 0 0 38px; border-radius: var(--radius-sm, 7px);
+      border: 1px solid var(--border); background: var(--surface-2);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted); cursor: pointer;
+    }
+    .ip-theme-toggle:hover { color: var(--text); border-color: var(--border-strong); }
+    .ip-theme-toggle svg { width: 17px; height: 17px; }
+    .ip-theme-toggle .ip-moon { display: none; }
+    html[data-theme="dark"] .ip-theme-toggle .ip-moon { display: block; }
+    html[data-theme="dark"] .ip-theme-toggle .ip-sun { display: none; }
+  </style>
+
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('ip-theme');
+        if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+    function ipToggleTheme() {
+      var cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      var next = cur === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      try { localStorage.setItem('ip-theme', next); } catch (e) {}
+    }
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="icons.jsx"></script>
+  <script type="text/babel" src="shell.jsx"></script>
+  <script type="text/babel" src="data.jsx"></script>
+  <script type="text/babel" src="parts.jsx"></script>
+  <script type="text/babel" src="directionC.jsx"></script>
+
+  <script type="text/babel">
+    // Top-bar theme toggle button, injected into TopBar's children slot.
+    function ThemeToggle() {
+      return (
+        <button className="ip-theme-toggle" type="button" title="Toggle light / dark"
+                onClick={() => ipToggleTheme()} aria-label="Toggle light / dark theme">
+          <IpIcon name="sun" size={17} stroke={1.7} className="ip-sun" />
+          <IpIcon name="moon" size={17} stroke={1.7} className="ip-moon" />
+        </button>
+      );
+    }
+
+    // Re-declare DirDashboard's wrapper so we can inject the toggle into the
+    // top bar. We reuse the shared parts (Sidebar, CatBlock, rail) by calling
+    // the exported DirDashboard, then patching its TopBar via a thin wrapper.
+    function Portal() {
+      // DirDashboard already composes the full workspace; we render it and
+      // mount the toggle into the top bar through a small portal effect.
+      const ref = React.useRef(null);
+      React.useEffect(() => {
+        const bar = ref.current && ref.current.querySelector('.ip-topbar');
+        if (!bar || bar.querySelector('.ip-theme-toggle')) return;
+        const host = document.createElement('div');
+        host.style.display = 'flex';
+        // place the toggle just before the env pill / bell cluster
+        const envPill = bar.querySelector('.ip-envpill');
+        bar.insertBefore(host, envPill || bar.lastChild);
+        ReactDOM.createRoot(host).render(<ThemeToggle />);
+      }, []);
+      return <div ref={ref} style={{ height: '100%' }}><DirDashboard /></div>;
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<Portal />);
+  </script>
+</body>
+</html>
